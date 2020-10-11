@@ -116,7 +116,8 @@ cc_library {
     name: "libhidltransport",
     vendor_available: true,
 
-    visibility: [":__subpackages__"],
+// TODO(b/144056694) Add back this visibility restriction.
+//    visibility: [":__subpackages__"],
 }
 
 cc_defaults {
