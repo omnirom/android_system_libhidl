@@ -16,6 +16,23 @@
       "message": "fix my issue\n\n09-07 09:55:29.152  1333  1333 E vndksupport: Could not load /vendor/lib64/hw/fingerprint.default.so from default namespace: dlopen failed: cannot locate symbol \"_ZN7android8hardware7details17gBnConstructorMapE\" referenced by \"/vendor/lib64/libvendor.goodix.hardware.biometrics.fingerprint@2.1.so\"....\n09-07 09:55:29.153  1333  1333 E HAL     : load: module\u003d/vendor/lib64/hw/fingerprint.default.so\n09-07 09:55:29.153  1333  1333 E HAL     : unknown\n09-07 09:55:29.153  1333  1333 E android.hardware.biometrics.fingerprint@2.3-service.rog2: Can\u0027t open fingerprint HW Module, error: -22\n09-07 09:55:29.153  1333  1333 E android.hardware.biometrics.fingerprint@2.3-service.rog2: Can\u0027t open HAL module",
       "revId": "f879d2e0158a511c06f014385c92479d27ade9f0",
       "serverId": "56841c99-7c94-43d4-bf0b-cb4707e66d55"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bf642171_fa5b4b46",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000026
+      },
+      "writtenOn": "2022-09-07T19:12:59Z",
+      "side": 1,
+      "message": "why not - looks safe",
+      "revId": "f879d2e0158a511c06f014385c92479d27ade9f0",
+      "serverId": "56841c99-7c94-43d4-bf0b-cb4707e66d55"
     }
   ]
 }
