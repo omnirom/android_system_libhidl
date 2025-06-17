@@ -513,10 +513,10 @@ struct PassthroughServiceManager : IServiceManager1_1 {
         dlerror(); // clear
 
         static std::string halLibPathVndkSp = details::getVndkSpHwPath();
-        std::vector<std::string> paths = {
-            HAL_LIBRARY_PATH_ODM, HAL_LIBRARY_PATH_VENDOR, halLibPathVndkSp,
+        std::vector<std::string> paths = {HAL_LIBRARY_PATH_ODM, HAL_LIBRARY_PATH_VENDOR,
+                                          halLibPathVndkSp,
 #ifndef __ANDROID_VNDK__
-            HAL_LIBRARY_PATH_SYSTEM,
+                                          HAL_LIBRARY_PATH_SYSTEM, HAL_LIBRARY_PATH_SYSTEM_EXT
 #endif
         };
 

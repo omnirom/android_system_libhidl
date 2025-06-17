@@ -323,7 +323,7 @@ private:
             if (mHasConverter) {
                 typedef std::variant_alternative_t<Index, _ConverterVar>
                         Converter;
-                sp<Converter> converter = new Converter(halInterface);
+                sp<Converter> converter = sp<Converter>::make(halInterface);
                 if (converter) {
                     mBase = converter;
                 } else {
@@ -347,72 +347,62 @@ private:
 
 // ----------------------------------------------------------------------
 
-#define DECLARE_HYBRID_META_INTERFACE(INTERFACE, ...)                     \
-        DECLARE_HYBRID_META_INTERFACE_WITH_CODE(                          \
-            ::android::DEFAULT_GET_HAL_TOKEN_TRANSACTION_CODE,            \
-            INTERFACE, __VA_ARGS__)                                       \
+#define DECLARE_HYBRID_META_INTERFACE(INTERFACE, ...)                                          \
+    DECLARE_HYBRID_META_INTERFACE_WITH_CODE(::android::DEFAULT_GET_HAL_TOKEN_TRANSACTION_CODE, \
+                                            INTERFACE, __VA_ARGS__)
 
+#define DECLARE_HYBRID_META_INTERFACE_WITH_CODE(GTKCODE, INTERFACE, ...)                          \
+  private:                                                                                        \
+    typedef ::std::variant<::std::monostate, __VA_ARGS__> _HalVariant;                            \
+    template <typename... Types>                                                                  \
+    using _SpVariant = ::std::variant<::std::monostate, ::android::sp<Types>...>;                 \
+                                                                                                  \
+  public:                                                                                         \
+    typedef _SpVariant<__VA_ARGS__> HalVariant;                                                   \
+    virtual HalVariant getHalVariant() const;                                                     \
+    size_t getHalIndex() const;                                                                   \
+    template <size_t Index>                                                                       \
+    using HalInterface = ::std::variant_alternative_t<Index, _HalVariant>;                        \
+    template <typename HAL>                                                                       \
+    sp<HAL> getHalInterface() const {                                                             \
+        HalVariant halVariant = getHalVariant();                                                  \
+        const sp<HAL>* hal = std::get_if<sp<HAL>>(&halVariant);                                   \
+        return hal ? *hal : nullptr;                                                              \
+    }                                                                                             \
+                                                                                                  \
+    static const ::android::String16 descriptor;                                                  \
+    static ::android::sp<I##INTERFACE> asInterface(const ::android::sp<::android::IBinder>& obj); \
+    virtual const ::android::String16& getInterfaceDescriptor() const;                            \
+    I##INTERFACE();                                                                               \
+    virtual ~I##INTERFACE();                                                                      \
+    static constexpr uint32_t sGetHalTokenTransactionCode = GTKCODE;
 
-#define DECLARE_HYBRID_META_INTERFACE_WITH_CODE(GTKCODE, INTERFACE, ...)  \
-private:                                                                  \
-    typedef ::std::variant<::std::monostate, __VA_ARGS__> _HalVariant;    \
-    template <typename... Types>                                          \
-    using _SpVariant =                                                    \
-            ::std::variant<::std::monostate, ::android::sp<Types>...>;    \
-public:                                                                   \
-    typedef _SpVariant<__VA_ARGS__> HalVariant;                           \
-    virtual HalVariant getHalVariant() const;                             \
-    size_t getHalIndex() const;                                           \
-    template <size_t Index>                                               \
-    using HalInterface = ::std::variant_alternative_t<Index, _HalVariant>;\
-    template <typename HAL>                                               \
-    sp<HAL> getHalInterface() const {                                     \
-        HalVariant halVariant = getHalVariant();                          \
-        const sp<HAL>* hal = std::get_if<sp<HAL>>(&halVariant);           \
-        return hal ? *hal : nullptr;                                      \
-    }                                                                     \
-                                                                          \
-    static const ::android::String16 descriptor;                          \
-    static ::android::sp<I##INTERFACE> asInterface(                       \
-            const ::android::sp<::android::IBinder>& obj);                \
-    virtual const ::android::String16& getInterfaceDescriptor() const;    \
-    I##INTERFACE();                                                       \
-    virtual ~I##INTERFACE();                                              \
-    static constexpr uint32_t sGetHalTokenTransactionCode = GTKCODE;      \
-
-
-#define IMPLEMENT_HYBRID_META_INTERFACE(INTERFACE, NAME)                  \
-    I##INTERFACE::HalVariant I##INTERFACE::getHalVariant() const {        \
-        return HalVariant{std::in_place_index<0>};                        \
-    }                                                                     \
-    size_t I##INTERFACE::getHalIndex() const {                            \
-        return getHalVariant().index();                                   \
-    }                                                                     \
-    constexpr uint32_t I##INTERFACE::sGetHalTokenTransactionCode;         \
-    static const ::android::StaticString16 I##INTERFACE##_desc_str16(     \
-        u##NAME);                                                         \
-    const ::android::String16 I##INTERFACE::descriptor(                   \
-        I##INTERFACE##_desc_str16);                                       \
-    const ::android::String16&                                            \
-            I##INTERFACE::getInterfaceDescriptor() const {                \
-        return I##INTERFACE::descriptor;                                  \
-    }                                                                     \
-    ::android::sp<I##INTERFACE> I##INTERFACE::asInterface(                \
-            const ::android::sp<::android::IBinder>& obj)                 \
-    {                                                                     \
-        ::android::sp<I##INTERFACE> intr;                                 \
-        if (obj != nullptr) {                                             \
-            intr = static_cast<I##INTERFACE*>(                            \
-                obj->queryLocalInterface(                                 \
-                        I##INTERFACE::descriptor).get());                 \
-            if (intr == nullptr) {                                        \
-                intr = new Hp##INTERFACE(obj);                            \
-            }                                                             \
-        }                                                                 \
-        return intr;                                                      \
-    }                                                                     \
-    I##INTERFACE::I##INTERFACE() { }                                      \
-    I##INTERFACE::~I##INTERFACE() { }                                     \
+#define IMPLEMENT_HYBRID_META_INTERFACE(INTERFACE, NAME)                                       \
+    I##INTERFACE::HalVariant I##INTERFACE::getHalVariant() const {                             \
+        return HalVariant{std::in_place_index<0>};                                             \
+    }                                                                                          \
+    size_t I##INTERFACE::getHalIndex() const {                                                 \
+        return getHalVariant().index();                                                        \
+    }                                                                                          \
+    constexpr uint32_t I##INTERFACE::sGetHalTokenTransactionCode;                              \
+    static const ::android::StaticString16 I##INTERFACE##_desc_str16(u##NAME);                 \
+    const ::android::String16 I##INTERFACE::descriptor(I##INTERFACE##_desc_str16);             \
+    const ::android::String16& I##INTERFACE::getInterfaceDescriptor() const {                  \
+        return I##INTERFACE::descriptor;                                                       \
+    }                                                                                          \
+    ::android::sp<I##INTERFACE> I##INTERFACE::asInterface(                                     \
+            const ::android::sp<::android::IBinder>& obj) {                                    \
+        ::android::sp<I##INTERFACE> intr;                                                      \
+        if (obj != nullptr) {                                                                  \
+            intr = sp<I##INTERFACE>::cast(obj->queryLocalInterface(I##INTERFACE::descriptor)); \
+            if (intr == nullptr) {                                                             \
+                intr = sp<Hp##INTERFACE>::make(obj);                                           \
+            }                                                                                  \
+        }                                                                                      \
+        return intr;                                                                           \
+    }                                                                                          \
+    I##INTERFACE::I##INTERFACE() {}                                                            \
+    I##INTERFACE::~I##INTERFACE() {}
 
 // ----------------------------------------------------------------------
 
@@ -460,7 +450,8 @@ status_t H2BConverter<HINTERFACE, BNINTERFACE>::linkToDeath(
             "linkToDeath(): recipient must not be null.");
     {
         std::lock_guard<std::mutex> lock(mObituariesLock);
-        mObituaries.push_back(new Obituary(recipient, cookie, flags, this));
+        mObituaries.push_back(
+                sp<Obituary>::make(recipient, cookie, flags, wp<IBinder>::fromExisting(this)));
         if (!mBase->linkToDeath(mObituaries.back(), 0)) {
            return DEAD_OBJECT;
         }
@@ -491,10 +482,8 @@ status_t H2BConverter<HINTERFACE, BNINTERFACE>::unlinkToDeath(
 }
 
 template <typename BPINTERFACE, typename CONVERTER, typename... CONVERTERS>
-HpInterface<BPINTERFACE, CONVERTER, CONVERTERS...>::HpInterface(
-        const sp<IBinder>& impl)
-      : mBpBinder{impl.get()},
-        mBp{new BPINTERFACE(impl)} {
+HpInterface<BPINTERFACE, CONVERTER, CONVERTERS...>::HpInterface(const sp<IBinder>& impl)
+    : mBpBinder{impl.get()}, mBp{sp<BPINTERFACE>::make(impl)} {
     mBase = mBp;
     if (!mBpBinder->remoteBinder()) {
         return;

@@ -16,6 +16,8 @@
 
 #define LOG_TAG "HidlLazyUtils"
 
+#include <mutex>
+
 #include <hidl/HidlLazyUtils.h>
 #include <hidl/HidlTransportSupport.h>
 

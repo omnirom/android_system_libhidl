@@ -27,8 +27,6 @@ cc_defaults {
         "liblog",
         "libcutils",
         "libutils",
-        "libprocessgroup",
-        "libjsoncpp",
         "libfmq",
     ],
     target: {

@@ -26,6 +26,7 @@ cc_library_shared {
     vendor_available: true,
     compile_multilib: "both",
     relative_install_path: "hw",
+    system_ext_specific: true,
     defaults: ["libhidl-defaults"],
     srcs: [
         "AshmemMapper.cpp",
